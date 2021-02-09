@@ -1,0 +1,2955 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anbox Stream Gateway | API Reference</title>
+    <link rel="stylesheet" href="stylesheets/foundation.min.css" />
+    <link rel="stylesheet" href="stylesheets/spectacle.min.css" />
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <!-- <script src="javascripts/foundation.js"></script> -->
+    <script src="javascripts/spectacle.min.js"></script>
+  </head>
+  <body id="spectacle">
+    <div id="page" class="drawer-layout drawer-slide-right-large">
+      <div id="sidebar">
+        <button class="close-button" aria-label="Close menu" type="button" data-drawer-close>
+          <span aria-hidden="true">×</span>
+        </button>
+        <nav id="nav" role="navigation">
+          <h5>Topics</h5>
+          <a href="#introduction">Introduction</a>
+          <h5>Operations</h5>
+          <section>
+            <a href="#tag-session">session</a>
+            <ul>
+              <li>
+                <a href="#operation--1.0-applications-get"> Get applications </a>
+              </li>
+              <li>
+                <a href="#operation--1.0-session--id--sockets-master-get"> Join session as master </a>
+              </li>
+              <li>
+                <a href="#operation--1.0-session--id--sockets-slave-get"> Join session as slave </a>
+              </li>
+              <li>
+                <a href="#operation--1.0-sessions-get"> Get all sessions </a>
+              </li>
+              <li>
+                <a href="#operation--1.0-sessions-post"> Create session </a>
+              </li>
+              <li>
+                <a href="#operation--1.0-sessions--id--get"> Get session </a>
+              </li>
+              <li>
+                <a href="#operation--1.0-sessions--id--delete"> Delete a session </a>
+              </li>
+              <li>
+                <a href="#operation--1.0-sessions--id--join-post"> Join session </a>
+              </li>
+            </ul>
+          </section>
+          <section>
+            <a href="#tag-region">region</a>
+            <ul>
+              <li>
+                <a href="#operation--1.0-regions-get"> Get regions </a>
+              </li>
+            </ul>
+          </section>
+          <section>
+            <a href="#tag-default">default</a>
+            <ul>
+              <li>
+                <a href="#operation--1.0-status-get"> Returns the Gateway service status. </a>
+              </li>
+            </ul>
+          </section>
+          <h5>Schema Definitions</h5>
+          <a href="#definition-api.Application"> api.Application </a>
+          <a href="#definition-api.ApplicationsGetResponse"> api.ApplicationsGetResponse </a>
+          <a href="#definition-api.ErrorResponse"> api.ErrorResponse </a>
+          <a href="#definition-api.Region"> api.Region </a>
+          <a href="#definition-api.RegionsGetResponse"> api.RegionsGetResponse </a>
+          <a href="#definition-api.Response"> api.Response </a>
+          <a href="#definition-api.Screen"> api.Screen </a>
+          <a href="#definition-api.Session"> api.Session </a>
+          <a href="#definition-api.SessionGetResponse"> api.SessionGetResponse </a>
+          <a href="#definition-api.SessionJoinResponse"> api.SessionJoinResponse </a>
+          <a href="#definition-api.SessionJoinResponseData"> api.SessionJoinResponseData </a>
+          <a href="#definition-api.SessionPost"> api.SessionPost </a>
+          <a href="#definition-api.SessionPostResponse"> api.SessionPostResponse </a>
+          <a href="#definition-api.SessionPostResponseData"> api.SessionPostResponseData </a>
+          <a href="#definition-api.SessionsGetResponse"> api.SessionsGetResponse </a>
+          <a href="#definition-api.StatusGetResponseAuthenticated"> api.StatusGetResponseAuthenticated </a>
+          <a href="#definition-api.StatusGetResponseAuthenticatedData"> api.StatusGetResponseAuthenticatedData </a>
+          <a href="#definition-api.StunServer"> api.StunServer </a>
+        </nav>
+      </div>
+      <div id="docs" class="row collapse expanded drawer" data-drawer>
+        <button class="floating-menu-icon" type="button" data-drawer-slide="right">
+          <span class="hamburger"></span>
+        </button>
+        <div class="example-box doc-content"></div>
+        <article>
+          <h1 class="doc-title">Anbox Stream Gateway
+            <span>API Reference</span>
+          </h1>
+          <div id="introduction" data-traverse-target="introduction">
+            <div class="doc-row">
+              <div class="doc-copy">
+                <p>The Anbox Stream Gateway provides federated access to Anbox Cloud regions. It&#39;s primary purpose is it to connect clients to individual Android containers and enable WebRTC based streaming. Tt does so via <code>sessions</code> which are &#39;chatrooms&#39; for clients and stream providers to communicate. When the communication is established, the stream is sent directly from one peer to another.</p>
+                <p>The Anbox Stream Gateway keeps things simple and only manages what is required to make streaming happen. Other components can invoke its REST API to add other capabilities on top such as user management, limiting, etc.</p>
+                <h2 id="authentication">Authentication</h2>
+                <p>All calls to the Stream Gateway must be authenticated. Authentication takes the form of a single token per client you must embed in your requests</p>
+                <h3 id="1-creating-the-token">1. Creating the token</h3>
+                <p>An internal HTTP API is exposed for managing client tokens. This API is only accessible via a Unix domain socket which resides at <code>/var/snap/anbox-stream-gateway/common/service/unix.socket</code> by default.
+                  <br>For convenience, the Stream Gateway has a built-in client designed to communicate to that API.</p>
+                <p>
+                  <strong>Creating a token</strong>
+                </p> <pre><code class="hljs">$ anbox-stream-gateway account <span class="hljs-keyword">create</span> my-<span class="hljs-keyword">client</span>
+AgEUYW5ib3gtc3RyZWFtLWdhdGV3YXkCBGFzZGYAAhkyMDIwLTA2LTIzVDA5OjMyOjE5KzAyOjAwAAAGIDcZMdTrdNdJB6kzjoXyx1_T6s8<span class="hljs-number">-0</span>C1AQSyzaA_GHLYQ
+</code></pre>
+                <p>
+                  <strong>Deleting a token</strong>
+                </p> <pre><code class="hljs">$ anbox-stream-gateway account <span class="hljs-keyword">delete</span> my-<span class="hljs-keyword">client</span>
+<span class="hljs-keyword">Account</span> my-<span class="hljs-keyword">client</span> deleted successfully
+</code></pre>
+                <p>You can type <code>anbox-stream-gateway --help</code> to list all commands</p>
+                <h3 id="2-using-the-token-in-your-requests">2. Using the token in your requests</h3>
+                <p>When making requests to the Stream Gateway API you can either place the token in the request HTTP headers or in the query parameters.</p>
+                <p>
+                  <strong>Request headers</strong>
+                </p> <pre><code class="hljs">$ curl -X GET https:<span class="hljs-regexp">//</span><span class="hljs-number">20.234</span>.<span class="hljs-number">75.29</span>:<span class="hljs-number">4000</span><span class="hljs-regexp">/1.0/</span>sessions \
+        -H <span class="hljs-string">'authorization=macaroon root=AgEUYW5ib3...QSyzaA_GHLYQ'</span>
+</code></pre>
+                <p>
+                  <strong>Query parameters</strong>
+                </p> <pre><code class="hljs">$ curl -X GET https:<span class="hljs-regexp">//</span><span class="hljs-number">20.234</span>.<span class="hljs-number">75.29</span>:<span class="hljs-number">4000</span><span class="hljs-regexp">/1.0/</span>sessions?api_token=AgEUYW5ib3...QSyzaA_GHLYQ
+</code></pre> </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Contact:
+                    <a href="mailto:indore@lists.canonical.com">indore@lists.canonical.com</a>
+                  </h5>
+                  <h5>Version:
+                    <span>1.0</span>
+                  </h5>
+                </section>
+              </div>
+            </div>
+          </div>
+          <h1 id="tag-session" class="swagger-summary-tag" data-traverse-target="tag-session">session</h1>
+          <div id="operation--1.0-applications-get" class="operation panel" data-traverse-target="operation--1.0-applications-get">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-session">session</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Get applications</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">GET</span>
+                  <span class="operation-path">/1.0/applications</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Return all applications that were registered via AMS and that support streaming.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ApplicationsGetResponse">api.ApplicationsGetResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>List of applications</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: [
+    {
+      <span class="hljs-attr">"name"</span>: <span class="hljs-string">"com.foo.bar"</span>
+    }
+  ],
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-security">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th class="swagger-request-security-schema"></th>
+                        <th class="swagger-request-security-scopes"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-AuthToken">AuthToken</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation--1.0-session--id--sockets-master-get" class="operation panel" data-traverse-target="operation--1.0-session--id--sockets-master-get">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-session">session</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Join session as master</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">GET</span>
+                  <span class="operation-path">/1.0/session/{id}/sockets/master</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>A websocket connection endpoint which initiates the signaling process with the master role. A master provides the stream where a slave consumes it. In a typical setup, the container calls the master endpoint, and the client calls the slave endpoint. You MUST call /sessions/{id}/join beforehand to prepare the android container.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples"></div>
+            </div>
+          </div>
+          <div id="operation--1.0-session--id--sockets-slave-get" class="operation panel" data-traverse-target="operation--1.0-session--id--sockets-slave-get">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-session">session</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Join session as slave</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">GET</span>
+                  <span class="operation-path">/1.0/session/{id}/sockets/slave</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>A websocket connection endpoint which initiates the signaling process with the slave role. Slaves are on the receiving end of the streaming. In a typical setup, the container calls the master endpoint, and the client calls the slave endpoint. This URL is returned then joining a session along with its credentials.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples"></div>
+            </div>
+          </div>
+          <div id="operation--1.0-sessions-get" class="operation panel" data-traverse-target="operation--1.0-sessions-get">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-session">session</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Get all sessions</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">GET</span>
+                  <span class="operation-path">/1.0/sessions</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-params">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">status:
+                        <span class="prop-type">
+                          <span class="json-property-type">string</span>
+                          <span class="json-property-range" title="Value limits"></span>
+                        </span>
+                      </div>
+                      <div class="prop-subtitle"> in query </div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Filter returned sessions by given status</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.SessionsGetResponse">api.SessionsGetResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>OK</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">500 Internal Server Error</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Internal Server Error</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <h5>Response Content-Types:
+                  <span>application/json</span>
+                </h5>
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: [
+    <span class="hljs-string">"string"</span>
+  ],
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(500 Internal Server Error)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-security">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th class="swagger-request-security-schema"></th>
+                        <th class="swagger-request-security-scopes"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-AuthToken">AuthToken</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation--1.0-sessions-post" class="operation panel" data-traverse-target="operation--1.0-sessions-post">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-session">session</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Create session</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">POST</span>
+                  <span class="operation-path">/1.0/sessions</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Create a new session based on an application, application version, region and screen details. The newly created session is started immediately after being created. The returned session details can be used to immediately start the signaling process. If an application version is not specified, the latest application version will always be in use for a session creation.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body">
+                  <div class="prop-row">
+                    <div class="prop-name">
+                      <div class="swagger-request-model">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.SessionPost">api.SessionPost</a>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="prop-value columns small-6">
+                      <!-- <div class="swagger-request-description"> -->
+                      <p>Session details</p>
+                      <!-- </div> -->
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Request Content-Types:
+                    <span>application/json</span>
+                  </h5>
+                  <h5>Request Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"app"</span>: <span class="hljs-string">"com.foo.bar"</span>,
+  <span class="hljs-attr">"app_version"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"extra_data"</span>: <span class="hljs-string">"userid=123"</span>,
+  <span class="hljs-attr">"idle_time_min"</span>: <span class="hljs-number">5</span>,
+  <span class="hljs-attr">"joinable"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"region"</span>: <span class="hljs-string">"us-west-1"</span>,
+  <span class="hljs-attr">"screen"</span>: {
+    <span class="hljs-attr">"density"</span>: <span class="hljs-number">240</span>,
+    <span class="hljs-attr">"fps"</span>: <span class="hljs-number">25</span>,
+    <span class="hljs-attr">"height"</span>: <span class="hljs-number">720</span>,
+    <span class="hljs-attr">"width"</span>: <span class="hljs-number">1280</span>
+  }
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">201 Created</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.SessionPostResponse">api.SessionPostResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Newly created session along with the information needed to connect to it</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">400 Bad Request</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Invalid body or missing application</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">404 Not Found</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>No agent can host the container</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">500 Internal Server Error</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Internal Server Error</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <h5>Response Content-Types:
+                  <span>application/json</span>
+                </h5>
+                <section>
+                  <h5>Response Example
+                    <span>(201 Created)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: {
+    <span class="hljs-attr">"id"</span>: <span class="hljs-string">"e25f3e3bcead096461d89d8ab7043f14bdb1ecd39"</span>,
+    <span class="hljs-attr">"joinable"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">"region"</span>: <span class="hljs-string">"eu-west-2"</span>,
+    <span class="hljs-attr">"status"</span>: <span class="hljs-string">"active"</span>,
+    <span class="hljs-attr">"stun_servers"</span>: [
+      {
+        <span class="hljs-attr">"password"</span>: <span class="hljs-string">"3f14bdb1ecd3"</span>,
+        <span class="hljs-attr">"urls"</span>: [
+          <span class="hljs-string">"https://stun.foo.com"</span>,
+          <span class="hljs-string">"https://turn.foo.com"</span>
+        ],
+        <span class="hljs-attr">"username"</span>: <span class="hljs-string">"f3e3bcead096461d8"</span>
+      }
+    ],
+    <span class="hljs-attr">"url"</span>: <span class="hljs-string">"string"</span>
+  },
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(400 Bad Request)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(404 Not Found)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(500 Internal Server Error)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-security">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th class="swagger-request-security-schema"></th>
+                        <th class="swagger-request-security-scopes"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-AuthToken">AuthToken</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation--1.0-sessions--id--get" class="operation panel" data-traverse-target="operation--1.0-sessions--id--get">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-session">session</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Get session</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">GET</span>
+                  <span class="operation-path">/1.0/sessions/{id}</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Returns a session from its ID.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-params">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">id:
+                        <span class="prop-type">
+                          <span class="json-property-type">string</span>
+                          <span class="json-property-range" title="Value limits"></span>
+                        </span>
+                      </div>
+                      <span class="json-property-required"></span>
+                      <div class="prop-subtitle"> in path </div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Session ID</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.SessionGetResponse">api.SessionGetResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>The requested session</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">400 Bad Request</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Invalid session ID</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">404 Not Found</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Non-existent session</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <h5>Response Content-Types:
+                  <span>application/json</span>
+                </h5>
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: {
+    <span class="hljs-attr">"app"</span>: <span class="hljs-string">"string"</span>,
+    <span class="hljs-attr">"id"</span>: <span class="hljs-string">"e25f3e3bcead096461d89d8ab7043f14bdb1ecd39"</span>,
+    <span class="hljs-attr">"joinable"</span>: <span class="hljs-string">"boolean"</span>,
+    <span class="hljs-attr">"region"</span>: <span class="hljs-string">"eu-west-1"</span>,
+    <span class="hljs-attr">"status"</span>: <span class="hljs-string">"string"</span>,
+    <span class="hljs-attr">"status_message"</span>: <span class="hljs-string">"Container failed to start"</span>
+  },
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(400 Bad Request)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(404 Not Found)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-security">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th class="swagger-request-security-schema"></th>
+                        <th class="swagger-request-security-scopes"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-AuthToken">AuthToken</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation--1.0-sessions--id--delete" class="operation panel" data-traverse-target="operation--1.0-sessions--id--delete">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-session">session</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Delete a session</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">DELETE</span>
+                  <span class="operation-path">/1.0/sessions/{id}</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-params">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">id:
+                        <span class="prop-type">
+                          <span class="json-property-type">string</span>
+                          <span class="json-property-range" title="Value limits"></span>
+                        </span>
+                      </div>
+                      <span class="json-property-required"></span>
+                      <div class="prop-subtitle"> in path </div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Session ID</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">force:
+                        <span class="prop-type">
+                          <span class="json-property-type">boolean</span>
+                          <span class="json-property-range" title="Value limits"></span>
+                        </span>
+                      </div>
+                      <div class="prop-subtitle"> in query </div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Force deletion even if agent is not available. This may leave a container around on the agent.</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.Response">api.Response</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Empty response to indicate success</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">400 Bad Request</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Invalid session ID</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">404 Not Found</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Non-existent session</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">500 Internal Server Error</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Internal Server Error</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(400 Bad Request)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(404 Not Found)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(500 Internal Server Error)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-security">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th class="swagger-request-security-schema"></th>
+                        <th class="swagger-request-security-scopes"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-AuthToken">AuthToken</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation--1.0-sessions--id--join-post" class="operation panel" data-traverse-target="operation--1.0-sessions--id--join-post">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-session">session</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Join session</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">POST</span>
+                  <span class="operation-path">/1.0/sessions/{id}/join</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Join an existing running session. The session must already be running. The returned object contains a URL with the required credentials for a client to join the signaling process.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.SessionJoinResponse">api.SessionJoinResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Object containing the slave URL as well as optional additional STUN/TURN servers</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">400 Bad Request</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Missing session ID or invalid session state</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">404 Not Found</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>The session does not exist</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">500 Internal Server Error</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Error when trying to generate session details</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: {
+    <span class="hljs-attr">"stun_servers"</span>: [
+      {
+        <span class="hljs-attr">"password"</span>: <span class="hljs-string">"3f14bdb1ecd3"</span>,
+        <span class="hljs-attr">"urls"</span>: [
+          <span class="hljs-string">"https://stun.foo.com"</span>,
+          <span class="hljs-string">"https://turn.foo.com"</span>
+        ],
+        <span class="hljs-attr">"username"</span>: <span class="hljs-string">"f3e3bcead096461d8"</span>
+      }
+    ],
+    <span class="hljs-attr">"url"</span>: <span class="hljs-string">"https://api.example.com/1.0/session/e25fcd39/sockets/slave?token=foobar"</span>
+  },
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(400 Bad Request)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(404 Not Found)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(500 Internal Server Error)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-security">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th class="swagger-request-security-schema"></th>
+                        <th class="swagger-request-security-scopes"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-AuthToken">AuthToken</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+            </div>
+          </div>
+          <h1 id="tag-region" class="swagger-summary-tag" data-traverse-target="tag-region">region</h1>
+          <div id="operation--1.0-regions-get" class="operation panel" data-traverse-target="operation--1.0-regions-get">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-region">region</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-title">
+              <span class="operation-summary">Get regions</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">GET</span>
+                  <span class="operation-path">/1.0/regions</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Regions are cloud regions, allowing clients to be as close as possible to the agent running the Android container.</p>
+                  <p>The list is dynamic and regions might change as agents are added or removed.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.RegionsGetResponse">api.RegionsGetResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>OK</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: [
+    {
+      <span class="hljs-attr">"name"</span>: <span class="hljs-string">"eu-west-1"</span>
+    }
+  ],
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-security">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th class="swagger-request-security-schema"></th>
+                        <th class="swagger-request-security-scopes"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <a href="#security-definition-AuthToken">AuthToken</a>
+                        </td>
+                        <td> </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
+            </div>
+          </div>
+          <h1 id="tag-default" class="swagger-summary-tag" data-traverse-target="tag-default">default</h1>
+          <div id="operation--1.0-status-get" class="operation panel" data-traverse-target="operation--1.0-status-get">
+            <h2 class="operation-title">
+              <span class="operation-summary">Returns the Gateway service status.</span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-path">
+                  <span class="operation-method">GET</span>
+                  <span class="operation-path">/1.0/status</span>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Returns the current status of the Gateway service along with some indicators that can be helpful to determine larger issues. The Gateway can be either healthy or unhealthy. Please note that a healthy status does not necessarily mean that a deployment is fully working. Other issues can affect the Streaming Stack but a healthy status only guarantees that the Gateway itself is not experiencing issues that would prevent it from working normally. Checking for status can take up to 7 seconds. Note that this is the upper bound, in normal circumstances, the timing will be much lower and timings higher than a couple seconds are usually indicators or something wrong (network issue, node restarted, etc).</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.StatusGetResponseAuthenticated">api.StatusGetResponseAuthenticated</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Only status is present if the request is not authenticated</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">500 Internal Server Error</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Internal Server Error</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">503 Service Unavailable</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/api.ErrorResponse">api.ErrorResponse</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>The Gateway is not fully started</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <h5>Response Content-Types:
+                  <span>application/json</span>
+                </h5>
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: {
+    <span class="hljs-attr">"agents"</span>: <span class="hljs-string">"integer"</span>,
+    <span class="hljs-attr">"database_nodes"</span>: <span class="hljs-string">"integer"</span>,
+    <span class="hljs-attr">"status"</span>: <span class="hljs-string">"string"</span>
+  },
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(500 Internal Server Error)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(503 Service Unavailable)</span>
+                  </h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <h1>Schema Definitions</h1>
+          <div id="definition-api.Application" class="definition panel" data-traverse-target="definition-api.Application">
+            <h2 class="panel-title">
+              <a name="/definitions/api.Application"></a>api.Application: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="name">
+                      <span class="json-property-name">name:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"com.foo.bar"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.ApplicationsGetResponse" class="definition panel" data-traverse-target="definition-api.ApplicationsGetResponse">
+            <h2 class="panel-title">
+              <a name="/definitions/api.ApplicationsGetResponse"></a>api.ApplicationsGetResponse: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="metadata">
+                      <span class="json-property-name">metadata:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-array">
+                          <a class="json-schema-ref" href="#/definitions/api.Application">api.Application</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">
+                          <span class="">
+                            <a class="json-schema-ref" href="#/definitions/api.Application">api.Application</a>
+                          </span>
+                        </span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">success</span>,
+                        <span class="json-property-enum-item">failed</span>,
+                        <span class="json-property-enum-item">unknown</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Status of the response</p>
+                    </dd>
+                    <dt data-property-name="status_code" class="has-description">
+                      <span class="json-property-name">status_code:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>StatusCode is the HTTP code of the response</p>
+                    </dd>
+                    <dt data-property-name="type" class="has-description">
+                      <span class="json-property-name">type:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">sync</span>,
+                        <span class="json-property-enum-item">error</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Type of the operation</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: [
+    {
+      <span class="hljs-attr">"name"</span>: <span class="hljs-string">"com.foo.bar"</span>
+    }
+  ],
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.ErrorResponse" class="definition panel" data-traverse-target="definition-api.ErrorResponse">
+            <h2 class="panel-title">
+              <a name="/definitions/api.ErrorResponse"></a>api.ErrorResponse: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="error">
+                      <span class="json-property-name">error:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt data-property-name="metadata" class="has-description">
+                      <span class="json-property-name">metadata:</span>
+                      <span class="json-property-type">object</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Metadata is a generic object whose type depends on the api request</p>
+                    </dd>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">success</span>,
+                        <span class="json-property-enum-item">failed</span>,
+                        <span class="json-property-enum-item">unknown</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Status of the response</p>
+                    </dd>
+                    <dt data-property-name="status_code" class="has-description">
+                      <span class="json-property-name">status_code:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>StatusCode is the HTTP code of the response</p>
+                    </dd>
+                    <dt data-property-name="type" class="has-description">
+                      <span class="json-property-name">type:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">sync</span>,
+                        <span class="json-property-enum-item">error</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Type of the operation</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"error"</span>: <span class="hljs-string">"invalid body format"</span>,
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.Region" class="definition panel" data-traverse-target="definition-api.Region">
+            <h2 class="panel-title">
+              <a name="/definitions/api.Region"></a>api.Region: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="name">
+                      <span class="json-property-name">name:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"eu-west-1"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.RegionsGetResponse" class="definition panel" data-traverse-target="definition-api.RegionsGetResponse">
+            <h2 class="panel-title">
+              <a name="/definitions/api.RegionsGetResponse"></a>api.RegionsGetResponse: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="metadata">
+                      <span class="json-property-name">metadata:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-array">
+                          <a class="json-schema-ref" href="#/definitions/api.Region">api.Region</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">
+                          <span class="">
+                            <a class="json-schema-ref" href="#/definitions/api.Region">api.Region</a>
+                          </span>
+                        </span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">success</span>,
+                        <span class="json-property-enum-item">failed</span>,
+                        <span class="json-property-enum-item">unknown</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Status of the response</p>
+                    </dd>
+                    <dt data-property-name="status_code" class="has-description">
+                      <span class="json-property-name">status_code:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>StatusCode is the HTTP code of the response</p>
+                    </dd>
+                    <dt data-property-name="type" class="has-description">
+                      <span class="json-property-name">type:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">sync</span>,
+                        <span class="json-property-enum-item">error</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Type of the operation</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: [
+    {
+      <span class="hljs-attr">"name"</span>: <span class="hljs-string">"eu-west-1"</span>
+    }
+  ],
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.Response" class="definition panel" data-traverse-target="definition-api.Response">
+            <h2 class="panel-title">
+              <a name="/definitions/api.Response"></a>api.Response: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="metadata" class="has-description">
+                      <span class="json-property-name">metadata:</span>
+                      <span class="json-property-type">object</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Metadata is a generic object whose type depends on the api request</p>
+                    </dd>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">success</span>,
+                        <span class="json-property-enum-item">failed</span>,
+                        <span class="json-property-enum-item">unknown</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Status of the response</p>
+                    </dd>
+                    <dt data-property-name="status_code" class="has-description">
+                      <span class="json-property-name">status_code:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>StatusCode is the HTTP code of the response</p>
+                    </dd>
+                    <dt data-property-name="type" class="has-description">
+                      <span class="json-property-name">type:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">sync</span>,
+                        <span class="json-property-enum-item">error</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Type of the operation</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: <span class="hljs-string">"object"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.Screen" class="definition panel" data-traverse-target="definition-api.Screen">
+            <h2 class="panel-title">
+              <a name="/definitions/api.Screen"></a>api.Screen: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="density" class="has-description">
+                      <span class="json-property-name">density:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">x ≥ 72</span>
+                      <span class="json-property-default-value" title="Default value">240</span>
+                    </dt>
+                    <dd>
+                      <p>Display density Android will be configured with. See
+                        <a href="https://developer.android.com/training/multiscreen/screendensities">https://developer.android.com/training/multiscreen/screendensities</a> for more details</p>
+                    </dd>
+                    <dt data-property-name="fps" class="has-description">
+                      <span class="json-property-name">fps:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">x ≥ 1</span>
+                    </dt>
+                    <dd>
+                      <p>FPS the video stream will use</p>
+                    </dd>
+                    <dt data-property-name="height" class="has-description">
+                      <span class="json-property-name">height:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">x ≥ 1</span>
+                    </dt>
+                    <dd>
+                      <p>Height of the screen</p>
+                    </dd>
+                    <dt data-property-name="width" class="has-description">
+                      <span class="json-property-name">width:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">x ≥ 1</span>
+                    </dt>
+                    <dd>
+                      <p>Width of the screen</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"density"</span>: <span class="hljs-number">240</span>,
+  <span class="hljs-attr">"fps"</span>: <span class="hljs-number">25</span>,
+  <span class="hljs-attr">"height"</span>: <span class="hljs-number">720</span>,
+  <span class="hljs-attr">"width"</span>: <span class="hljs-number">1280</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.Session" class="definition panel" data-traverse-target="definition-api.Session">
+            <h2 class="panel-title">
+              <a name="/definitions/api.Session"></a>api.Session: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="app" class="has-description">
+                      <span class="json-property-name">app:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>App that will be run in the session. Applications are listed from AMS if they have been configured for streaming.</p>
+                    </dd>
+                    <dt data-property-name="id" class="has-description">
+                      <span class="json-property-name">id:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>ID of the session.</p>
+                    </dd>
+                    <dt data-property-name="joinable" class="has-description">
+                      <span class="json-property-name">joinable:</span>
+                      <span class="json-property-type">boolean</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Marks wether the session is joinable or not</p>
+                    </dd>
+                    <dt data-property-name="region" class="has-description">
+                      <span class="json-property-name">region:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Region on which the instance is located.</p>
+                    </dd>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">created</span>,
+                        <span class="json-property-enum-item">active</span>,
+                        <span class="json-property-enum-item">error</span>,
+                        <span class="json-property-enum-item">terminated</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Status of the session. created: sent creation request to an available agent. active: container is up and running. error: an error occurred and the container is stopped. terminated: the container has stopped gracefully, either by manual command or timeout.</p>
+                    </dd>
+                    <dt data-property-name="status_message" class="has-description">
+                      <span class="json-property-name">status_message:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Message giving more information about the current status</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"app"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"e25f3e3bcead096461d89d8ab7043f14bdb1ecd39"</span>,
+  <span class="hljs-attr">"joinable"</span>: <span class="hljs-string">"boolean"</span>,
+  <span class="hljs-attr">"region"</span>: <span class="hljs-string">"eu-west-1"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"status_message"</span>: <span class="hljs-string">"Container failed to start"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.SessionGetResponse" class="definition panel" data-traverse-target="definition-api.SessionGetResponse">
+            <h2 class="panel-title">
+              <a name="/definitions/api.SessionGetResponse"></a>api.SessionGetResponse: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="metadata">
+                      <span class="json-property-name">metadata:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-object">
+                          <a class="json-schema-ref" href="#/definitions/api.Session">api.Session</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">success</span>,
+                        <span class="json-property-enum-item">failed</span>,
+                        <span class="json-property-enum-item">unknown</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Status of the response</p>
+                    </dd>
+                    <dt data-property-name="status_code" class="has-description">
+                      <span class="json-property-name">status_code:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>StatusCode is the HTTP code of the response</p>
+                    </dd>
+                    <dt data-property-name="type" class="has-description">
+                      <span class="json-property-name">type:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">sync</span>,
+                        <span class="json-property-enum-item">error</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Type of the operation</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: {
+    <span class="hljs-attr">"app"</span>: <span class="hljs-string">"string"</span>,
+    <span class="hljs-attr">"id"</span>: <span class="hljs-string">"e25f3e3bcead096461d89d8ab7043f14bdb1ecd39"</span>,
+    <span class="hljs-attr">"joinable"</span>: <span class="hljs-string">"boolean"</span>,
+    <span class="hljs-attr">"region"</span>: <span class="hljs-string">"eu-west-1"</span>,
+    <span class="hljs-attr">"status"</span>: <span class="hljs-string">"string"</span>,
+    <span class="hljs-attr">"status_message"</span>: <span class="hljs-string">"Container failed to start"</span>
+  },
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.SessionJoinResponse" class="definition panel" data-traverse-target="definition-api.SessionJoinResponse">
+            <h2 class="panel-title">
+              <a name="/definitions/api.SessionJoinResponse"></a>api.SessionJoinResponse: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="metadata">
+                      <span class="json-property-name">metadata:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-object">
+                          <a class="json-schema-ref" href="#/definitions/api.SessionJoinResponseData">api.SessionJoinResponseData</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">success</span>,
+                        <span class="json-property-enum-item">failed</span>,
+                        <span class="json-property-enum-item">unknown</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Status of the response</p>
+                    </dd>
+                    <dt data-property-name="status_code" class="has-description">
+                      <span class="json-property-name">status_code:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>StatusCode is the HTTP code of the response</p>
+                    </dd>
+                    <dt data-property-name="type" class="has-description">
+                      <span class="json-property-name">type:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">sync</span>,
+                        <span class="json-property-enum-item">error</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Type of the operation</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: {
+    <span class="hljs-attr">"stun_servers"</span>: [
+      {
+        <span class="hljs-attr">"password"</span>: <span class="hljs-string">"3f14bdb1ecd3"</span>,
+        <span class="hljs-attr">"urls"</span>: [
+          <span class="hljs-string">"https://stun.foo.com"</span>,
+          <span class="hljs-string">"https://turn.foo.com"</span>
+        ],
+        <span class="hljs-attr">"username"</span>: <span class="hljs-string">"f3e3bcead096461d8"</span>
+      }
+    ],
+    <span class="hljs-attr">"url"</span>: <span class="hljs-string">"https://api.example.com/1.0/session/e25fcd39/sockets/slave?token=foobar"</span>
+  },
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.SessionJoinResponseData" class="definition panel" data-traverse-target="definition-api.SessionJoinResponseData">
+            <h2 class="panel-title">
+              <a name="/definitions/api.SessionJoinResponseData"></a>api.SessionJoinResponseData: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="stun_servers" class="has-description">
+                      <span class="json-property-name">stun_servers:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-array">
+                          <a class="json-schema-ref" href="#/definitions/api.StunServer">api.StunServer</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>StunServers is a list of STUN servers with their optional credentials. They are passed to the client to figure out the best route to the actual android instance. They are used within the WebRTC protocol to negotiation a peer to peer transport between the Android instance and the connecting client.</p>
+                    </dd>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">
+                          <span class="">
+                            <a class="json-schema-ref" href="#/definitions/api.StunServer">api.StunServer</a>
+                          </span>
+                        </span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                    <dt data-property-name="url" class="has-description">
+                      <span class="json-property-name">url:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>URL is the endpoint to reach to start the WebRTC signaling process.</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"stun_servers"</span>: [
+    {
+      <span class="hljs-attr">"password"</span>: <span class="hljs-string">"3f14bdb1ecd3"</span>,
+      <span class="hljs-attr">"urls"</span>: [
+        <span class="hljs-string">"https://stun.foo.com"</span>,
+        <span class="hljs-string">"https://turn.foo.com"</span>
+      ],
+      <span class="hljs-attr">"username"</span>: <span class="hljs-string">"f3e3bcead096461d8"</span>
+    }
+  ],
+  <span class="hljs-attr">"url"</span>: <span class="hljs-string">"https://api.example.com/1.0/session/e25fcd39/sockets/slave?token=foobar"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.SessionPost" class="definition panel" data-traverse-target="definition-api.SessionPost">
+            <h2 class="panel-title">
+              <a name="/definitions/api.SessionPost"></a>api.SessionPost: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="app" class="has-description">
+                      <span class="json-property-name">app:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Application the session should be created for</p>
+                    </dd>
+                    <dt data-property-name="app_version" class="has-description">
+                      <span class="json-property-name">app_version:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Which specific version of the application to launch for the session. If not specified, the last published version is launched.</p>
+                    </dd>
+                    <dt data-property-name="extra_data" class="has-description">
+                      <span class="json-property-name">extra_data:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Extra data passed as part of the userdata to the container</p>
+                    </dd>
+                    <dt data-property-name="idle_time_min" class="has-description">
+                      <span class="json-property-name">idle_time_min:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Time in minutes a session stays idle without any client connected. The value &quot;0&quot; is special and causes the container to stay alive until the session is terminated by an API call or the container decide on its own to shutdown.</p>
+                    </dd>
+                    <dt data-property-name="joinable" class="has-description">
+                      <span class="json-property-name">joinable:</span>
+                      <span class="json-property-type">boolean</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Makes the session joinable by another client after the initial client left. Requires idle_time_min to be set.</p>
+                    </dd>
+                    <dt data-property-name="region" class="has-description">
+                      <span class="json-property-name">region:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Region the session should be created in. If left empty a region is randomly selected.</p>
+                    </dd>
+                    <dt data-property-name="screen" class="has-description">
+                      <span class="json-property-name">screen:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-object">
+                          <a class="json-schema-ref" href="#/definitions/api.Screen">api.Screen</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Definition of the screen dimensions</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"app"</span>: <span class="hljs-string">"com.foo.bar"</span>,
+  <span class="hljs-attr">"app_version"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"extra_data"</span>: <span class="hljs-string">"userid=123"</span>,
+  <span class="hljs-attr">"idle_time_min"</span>: <span class="hljs-number">5</span>,
+  <span class="hljs-attr">"joinable"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"region"</span>: <span class="hljs-string">"us-west-1"</span>,
+  <span class="hljs-attr">"screen"</span>: {
+    <span class="hljs-attr">"density"</span>: <span class="hljs-number">240</span>,
+    <span class="hljs-attr">"fps"</span>: <span class="hljs-number">25</span>,
+    <span class="hljs-attr">"height"</span>: <span class="hljs-number">720</span>,
+    <span class="hljs-attr">"width"</span>: <span class="hljs-number">1280</span>
+  }
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.SessionPostResponse" class="definition panel" data-traverse-target="definition-api.SessionPostResponse">
+            <h2 class="panel-title">
+              <a name="/definitions/api.SessionPostResponse"></a>api.SessionPostResponse: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="metadata">
+                      <span class="json-property-name">metadata:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-object">
+                          <a class="json-schema-ref" href="#/definitions/api.SessionPostResponseData">api.SessionPostResponseData</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">success</span>,
+                        <span class="json-property-enum-item">failed</span>,
+                        <span class="json-property-enum-item">unknown</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Status of the response</p>
+                    </dd>
+                    <dt data-property-name="status_code" class="has-description">
+                      <span class="json-property-name">status_code:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>StatusCode is the HTTP code of the response</p>
+                    </dd>
+                    <dt data-property-name="type" class="has-description">
+                      <span class="json-property-name">type:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">sync</span>,
+                        <span class="json-property-enum-item">error</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Type of the operation</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: {
+    <span class="hljs-attr">"id"</span>: <span class="hljs-string">"e25f3e3bcead096461d89d8ab7043f14bdb1ecd39"</span>,
+    <span class="hljs-attr">"joinable"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">"region"</span>: <span class="hljs-string">"eu-west-2"</span>,
+    <span class="hljs-attr">"status"</span>: <span class="hljs-string">"active"</span>,
+    <span class="hljs-attr">"stun_servers"</span>: [
+      {
+        <span class="hljs-attr">"password"</span>: <span class="hljs-string">"3f14bdb1ecd3"</span>,
+        <span class="hljs-attr">"urls"</span>: [
+          <span class="hljs-string">"https://stun.foo.com"</span>,
+          <span class="hljs-string">"https://turn.foo.com"</span>
+        ],
+        <span class="hljs-attr">"username"</span>: <span class="hljs-string">"f3e3bcead096461d8"</span>
+      }
+    ],
+    <span class="hljs-attr">"url"</span>: <span class="hljs-string">"string"</span>
+  },
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.SessionPostResponseData" class="definition panel" data-traverse-target="definition-api.SessionPostResponseData">
+            <h2 class="panel-title">
+              <a name="/definitions/api.SessionPostResponseData"></a>api.SessionPostResponseData: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="id" class="has-description">
+                      <span class="json-property-name">id:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>ID of the session.</p>
+                    </dd>
+                    <dt data-property-name="joinable" class="has-description">
+                      <span class="json-property-name">joinable:</span>
+                      <span class="json-property-type">boolean</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Marks the session joinable after the initial client left</p>
+                    </dd>
+                    <dt data-property-name="region" class="has-description">
+                      <span class="json-property-name">region:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Region is a cloud region where the application will be launched. Regions are registered dynamically by agents.</p>
+                    </dd>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">created</span>,
+                        <span class="json-property-enum-item">active</span>,
+                        <span class="json-property-enum-item">error</span>,
+                        <span class="json-property-enum-item">terminated</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Status of the session. created: sent creation request to an available agent. active: container is up and running. error: an error occurred and the container is stopped. terminated: the container has stopped gracefully, either by manual command or timeout.</p>
+                    </dd>
+                    <dt data-property-name="stun_servers" class="has-description">
+                      <span class="json-property-name">stun_servers:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-array">
+                          <a class="json-schema-ref" href="#/definitions/api.StunServer">api.StunServer</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>StunServers is a list of STUN servers with their optional credentials. They are passed to the client to figure out the best route to the actual android instance. They are used within the WebRTC protocol to negotiation a peer to peer transport between the Android instance and the connecting client.</p>
+                    </dd>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">
+                          <span class="">
+                            <a class="json-schema-ref" href="#/definitions/api.StunServer">api.StunServer</a>
+                          </span>
+                        </span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                    <dt data-property-name="url" class="has-description">
+                      <span class="json-property-name">url:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>URL is the endpoint to reach to start the WebRTC signaling process.</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"e25f3e3bcead096461d89d8ab7043f14bdb1ecd39"</span>,
+  <span class="hljs-attr">"joinable"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"region"</span>: <span class="hljs-string">"eu-west-2"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"active"</span>,
+  <span class="hljs-attr">"stun_servers"</span>: [
+    {
+      <span class="hljs-attr">"password"</span>: <span class="hljs-string">"3f14bdb1ecd3"</span>,
+      <span class="hljs-attr">"urls"</span>: [
+        <span class="hljs-string">"https://stun.foo.com"</span>,
+        <span class="hljs-string">"https://turn.foo.com"</span>
+      ],
+      <span class="hljs-attr">"username"</span>: <span class="hljs-string">"f3e3bcead096461d8"</span>
+    }
+  ],
+  <span class="hljs-attr">"url"</span>: <span class="hljs-string">"string"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.SessionsGetResponse" class="definition panel" data-traverse-target="definition-api.SessionsGetResponse">
+            <h2 class="panel-title">
+              <a name="/definitions/api.SessionsGetResponse"></a>api.SessionsGetResponse: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="metadata">
+                      <span class="json-property-name">metadata:</span>
+                      <span class="json-property-type">string[]</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">string</span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">success</span>,
+                        <span class="json-property-enum-item">failed</span>,
+                        <span class="json-property-enum-item">unknown</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Status of the response</p>
+                    </dd>
+                    <dt data-property-name="status_code" class="has-description">
+                      <span class="json-property-name">status_code:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>StatusCode is the HTTP code of the response</p>
+                    </dd>
+                    <dt data-property-name="type" class="has-description">
+                      <span class="json-property-name">type:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">sync</span>,
+                        <span class="json-property-enum-item">error</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Type of the operation</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: [
+    <span class="hljs-string">"string"</span>
+  ],
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.StatusGetResponseAuthenticated" class="definition panel" data-traverse-target="definition-api.StatusGetResponseAuthenticated">
+            <h2 class="panel-title">
+              <a name="/definitions/api.StatusGetResponseAuthenticated"></a>api.StatusGetResponseAuthenticated: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="metadata">
+                      <span class="json-property-name">metadata:</span>
+                      <span class="json-property-type">
+                        <span class="json-schema-ref-object">
+                          <a class="json-schema-ref" href="#/definitions/api.StatusGetResponseAuthenticatedData">api.StatusGetResponseAuthenticatedData</a>
+                        </span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt data-property-name="status" class="has-description">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">success</span>,
+                        <span class="json-property-enum-item">failed</span>,
+                        <span class="json-property-enum-item">unknown</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Status of the response</p>
+                    </dd>
+                    <dt data-property-name="status_code" class="has-description">
+                      <span class="json-property-name">status_code:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>StatusCode is the HTTP code of the response</p>
+                    </dd>
+                    <dt data-property-name="type" class="has-description">
+                      <span class="json-property-name">type:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">
+                        <span class="json-property-enum-item">sync</span>,
+                        <span class="json-property-enum-item">error</span>
+                      </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Type of the operation</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"metadata"</span>: {
+    <span class="hljs-attr">"agents"</span>: <span class="hljs-string">"integer"</span>,
+    <span class="hljs-attr">"database_nodes"</span>: <span class="hljs-string">"integer"</span>,
+    <span class="hljs-attr">"status"</span>: <span class="hljs-string">"string"</span>
+  },
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"success"</span>,
+  <span class="hljs-attr">"status_code"</span>: <span class="hljs-number">200</span>,
+  <span class="hljs-attr">"type"</span>: <span class="hljs-string">"sync"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.StatusGetResponseAuthenticatedData" class="definition panel" data-traverse-target="definition-api.StatusGetResponseAuthenticatedData">
+            <h2 class="panel-title">
+              <a name="/definitions/api.StatusGetResponseAuthenticatedData"></a>api.StatusGetResponseAuthenticatedData: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="agents">
+                      <span class="json-property-name">agents:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt data-property-name="database_nodes">
+                      <span class="json-property-name">database_nodes:</span>
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dt data-property-name="status">
+                      <span class="json-property-name">status:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"agents"</span>: <span class="hljs-string">"integer"</span>,
+  <span class="hljs-attr">"database_nodes"</span>: <span class="hljs-string">"integer"</span>,
+  <span class="hljs-attr">"status"</span>: <span class="hljs-string">"string"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-api.StunServer" class="definition panel" data-traverse-target="definition-api.StunServer">
+            <h2 class="panel-title">
+              <a name="/definitions/api.StunServer"></a>api.StunServer: object
+              <!-- <span class="json-property-type"><span class="json-property-type">object</span>
+              <span class="json-property-range" title="Value limits"></span>
+              
+              
+              </span> -->
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="password" class="has-description">
+                      <span class="json-property-name">password:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Password is the optional password to authenticate on the STUN/TURN server. It is usually unique to a session.</p>
+                    </dd>
+                    <dt data-property-name="urls" class="has-description">
+                      <span class="json-property-name">urls:</span>
+                      <span class="json-property-type">string[]</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>URLs is the list of endpoints the STUN/TURN server can be reached on.</p>
+                    </dd>
+                    <dt class="json-inner-schema">
+                      <section class="json-schema-array-items">
+                        <span class="json-property-type">string</span>
+                        <span class="json-property-range" title="Value limits"></span>
+                        <div class="json-inner-schema"> </div>
+                      </section>
+                    </dt>
+                    <dt data-property-name="username" class="has-description">
+                      <span class="json-property-name">username:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </dt>
+                    <dd>
+                      <p>Username is the optional username to authenticate on the STUN/TURN server. It is usually unique to a session.</p>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <!-- <div class="hljs"> -->
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"password"</span>: <span class="hljs-string">"3f14bdb1ecd3"</span>,
+  <span class="hljs-attr">"urls"</span>: [
+    <span class="hljs-string">"https://stun.foo.com"</span>,
+    <span class="hljs-string">"https://turn.foo.com"</span>
+  ],
+  <span class="hljs-attr">"username"</span>: <span class="hljs-string">"f3e3bcead096461d8"</span>
+}
+</code></pre> </body>
+                  </html>
+                  <!-- </div> -->
+                </section>
+              </div>
+            </div>
+          </div>
+          <div class="doc-row no-margin">
+            <div class="doc-copy doc-separator">
+              <a class="powered-by" href="https://sourcey.com/spectacle">Documentation by
+                <span>Spectacle</span>
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </body>
+</html>
